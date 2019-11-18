@@ -32,6 +32,10 @@ chmod +x Miniconda3-latest-Linux-x86_64.sh
 rm Miniconda3-latest-Linux-x86_64.sh
 $CONDA_DIR/bin/conda install --yes conda==4.3.21
 
+#Set Swappiness value to 10 instead of 60
+sysctl -w vm.swappiness=10
+cat /proc/sys/vm/swappiness
+
 # Install Jupyter notebook
 conda install --yes 'notebook=5.0*' terminado
 conda clean -yt
