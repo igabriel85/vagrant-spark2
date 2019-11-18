@@ -89,18 +89,18 @@ cp /vagrant/kernels/scala.json /opt/conda/share/jupyter/kernels/scala/kernel.jso
 cp /vagrant/kernels/pyspark.json /opt/conda/share/jupyter/kernels/pyspark/kernel.json
 
 #Jupyter added in logon script rc.local (executed before login as root)
-echo ' Setting up local rc path'
+# echo ' Setting up local rc path'
 
-echo '#!/bin/sh -e' > /etc/rc.local
-echo 'export CONDA_DIR=/opt/conda' >> /etc/rc.local
-echo 'export PATH=$CONDA_DIR/bin:$PATH' >> /etc/rc.local
-echo 'export SPARK_HOME=/usr/local/spark' >> /etc/rc.local
-echo 'export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip' >> /etc/rc.local
-echo "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir='/home/vagrant' & " >> /etc/rc.local
-echo 'exit 0' >> /etc/rc.local
+# echo '#!/bin/sh -e' > /etc/rc.local
+# echo 'export CONDA_DIR=/opt/conda' >> /etc/rc.local
+# echo 'export PATH=$CONDA_DIR/bin:$PATH' >> /etc/rc.local
+# echo 'export SPARK_HOME=/usr/local/spark' >> /etc/rc.local
+# echo 'export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip' >> /etc/rc.local
+# echo "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir='/home/vagrant' & " >> /etc/rc.local
+# echo 'exit 0' >> /etc/rc.local
 
 # fix permisions
-chown -R vagrant.vagrant /opt/*
+chown -R vagrant:vagrant /opt/*
 
 #bash script to start Jupyter (in case the logon script doesn't work)
 cp /vagrant/startJupyter.sh /
