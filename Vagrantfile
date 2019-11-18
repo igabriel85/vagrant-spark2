@@ -7,6 +7,8 @@ Vagrant.configure(2) do |config|
 
   config.vm.network "private_network", ip: "192.168.50.5"
   config.vm.network "forwarded_port", guest: 8888, host: 8888
+  config.vm.network "forwarded_port", guest: 4040, host: 4040
+  config.vm.network "forwarded_port", guest: 18080, host: 18080
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "3072"
