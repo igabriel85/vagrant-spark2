@@ -99,5 +99,8 @@ echo 'export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-sr
 echo "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir='/home/vagrant' & " >> /etc/rc.local
 echo 'exit 0' >> /etc/rc.local
 
+# fix permisions
+chown -R vagrant.vagrant /opt/*
+
 #bash script to start Jupyter (in case the logon script doesn't work)
 cp /vagrant/startJupyter.sh /
