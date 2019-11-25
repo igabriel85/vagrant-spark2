@@ -106,3 +106,4 @@ chown -R vagrant:vagrant /opt/*
 
 #bash script to start Jupyter (in case the logon script doesn't work)
 cp /vagrant/startJupyter.sh /
+chmod +x /startJupyter.sh
