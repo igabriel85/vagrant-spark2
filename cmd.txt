@@ -1,0 +1,4 @@
+spark-submit --class org.apache.spark.examples.SparkPi --master spark://ubuntu-bionic:7077 /usr/local/spark/examples/jars/spark-examples_2.11-2.1.1.jar 100
+
+./start-master.sh
+./start-slave.sh spark://ubuntu-bionic:7077
