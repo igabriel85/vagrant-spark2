@@ -21,4 +21,4 @@ Usefull port:
 
 The REST API documentation can be downloaded from here:
 
-- [REST API documentation]()
+- [REST API documentation](https://github.com/igabriel85/vagrant-spark2/blob/master/monitoring%20example/anomaly-inducer-REST.pdf)
