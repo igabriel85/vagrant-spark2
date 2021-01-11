@@ -49,3 +49,5 @@ http://localhost:8888
 ### If you're behind proxy:
 
 Install [Proxy Configuration Plugin for Vagrant](https://github.com/tmatilai/vagrant-proxyconf/)
+
+### For a two VM Spark monitoring setup you can go to this section of the repository.
