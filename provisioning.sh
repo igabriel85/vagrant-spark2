@@ -48,14 +48,15 @@ mkdir /root/.jupyter
 mkdir /root/.local
 
 # Spark dependencies
-export APACHE_SPARK_VERSION=2.1.1
+export APACHE_SPARK_VERSION=3.1.2
 apt-get -y update
 apt-get install -y --no-install-recommends openjdk-7-jre-headless
 apt-get clean
 echo 'Downloading Spark. Hold tight..'
 wget -qO - http://d3kbcqa49mib13.cloudfront.net/spark-${APACHE_SPARK_VERSION}-bin-hadoop2.7.tgz | tar -xz -C /usr/local/
+wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2.tgz
 cd /usr/local
-ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop2.7 spark
+ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2 spark
 
 # Scala Spark kernel (build and cleanup)
 
@@ -77,7 +78,7 @@ apt-get clean
 # Spark env
 export SPARK_HOME=/usr/local/spark
 # TO BE CHECK ONCE INSTALLED
-export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.4-src.zip
+export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9-src.zip
 
 # Install Python packages
 conda install --yes 'ipython' 'ipywidgets' 'pandas' 'matplotlib' 'scipy' 'seaborn' 'scikit-learn' 'pyspark' 'py4j' pyzmq
@@ -102,7 +103,7 @@ cp /vagrant/kernels/pyspark.json /opt/conda/share/jupyter/kernels/pyspark/kernel
 # echo 'exit 0' >> /etc/rc.local
 
 # fix permisions
-chown -R vagrant:vagrant /opt/*
+chown -R vagrant:vagrant /opt/
 
 #bash script to start Jupyter (in case the logon script doesn't work)
 cp /vagrant/startJupyter.sh /
