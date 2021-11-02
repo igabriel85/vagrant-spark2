@@ -52,7 +52,7 @@ cd /opt/prometheus-2.13.0-rc.0.linux-amd64
 # Start prometheus
 # nohup ./prometheus > prometheus.log 2>&1 &
 
-# Register node_exporter as service
+# Register prometheus as service
 sudo mkdir /usr/lib/systemd/system
 sudo cp /vagrant/prometheus.service /usr/lib/systemd/system/
 sudo systemctl daemon-reload
@@ -98,7 +98,6 @@ export LC_ALL="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
 apt-get update
 apt-get install wget -y
-apt-get install collectd -y
 apt-get install redis-server -y
 echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
@@ -208,7 +207,7 @@ Vagrant.configure("2") do |config|
   
   config.vm.define :master do |master|
     master.vm.provider :virtualbox do |v|
-      v.name = "prometheus_unical"
+      v.name = "prometheus"
       v.customize ["modifyvm", :id, "--memory", "2048"]
     end
     master.disksize.size = '20GB'
