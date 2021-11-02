@@ -207,7 +207,7 @@ Vagrant.configure("2") do |config|
   
   config.vm.define :master do |master|
     master.vm.provider :virtualbox do |v|
-      v.name = "prometheus"
+      v.name = "prometheus_bd"
       v.customize ["modifyvm", :id, "--memory", "2048"]
     end
     master.disksize.size = '20GB'
@@ -231,7 +231,7 @@ Vagrant.configure("2") do |config|
   config.vm.define :slave1 do |slave1|
     slave1.vm.box = "ubuntu/bionic64"
     slave1.vm.provider :virtualbox do |v|
-      v.name = "unical_node1"
+      v.name = "unical_bd_node1"
       v.customize ["modifyvm", :id, "--memory", "2048"]
       v.customize ["modifyvm", :id, "--cpus", 4]
     end
