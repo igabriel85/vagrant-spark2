@@ -1,4 +1,7 @@
-spark-submit --class org.apache.spark.examples.SparkPi --master spark://ubuntu-bionic:7077 /usr/local/spark/examples/jars/spark-examples_2.11-2.1.1.jar 100
+spark-submit --class org.apache.spark.examples.SparkPi --master spark://ubuntu-bionic:7077 /usr/local/spark/examples/jars/spark-examples__2.12-3.1.2.jar 100
+
+
+spark-submit --master spark://node1:7077 --executor-memory 1g  --driver-class-path /usr/local/spark/examples/src/main/python/ml/gradient_boosted_tree_classifier_example.py /usr/local/spark/examples/src/main/python/ml/gradient_boosted_tree_classifier_example.py
 
 ./start-master.sh
-./start-slave.sh spark://ubuntu-bionic:7077
+./start-slave.sh spark://node1:7077
