@@ -189,7 +189,7 @@ $spark_slave_script = <<SCRIPT
 
 
 # Start Spark Master
-cd /usr/local/spark/sbin/ && ./start-slave.sh spark://node1:7077
+cd /usr/local/spark/sbin/ && ./start-worker.sh spark://node1:7077
 
 SCRIPT
 
