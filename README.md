@@ -14,9 +14,17 @@ You have to install:
 1. [VirtualBox 5](https://www.virtualbox.org/wiki/Downloads) or later (this Vagrantfile was tested on VirtualBox 7.0.0)
 2. VirtualBox Oracle VM VirtualBox Extension Pack
 3. [Vagrant](https://www.vagrantup.com)
-4. Vagrant plugin [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest) to keep updated the guest additions on VM:
+4. Vagrant plugins [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest) to keep updated the guest additions on VM:
 ```
 vagrant plugin install vagrant-vbguest
+```
+Install Hostmanager plugin
+```
+vagrant plugin install vagrant-hostmanager
+```
+Install Disksize plugin
+```
+vagrant plugin install vagrant-disksize
 ```
 
 If you'are going to use Vagrant on Windows machine, you could get this error when start a new VM:
