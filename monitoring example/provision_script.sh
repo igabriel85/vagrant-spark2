@@ -46,7 +46,7 @@ mkdir /root/.jupyter
 mkdir /root/.local
 
 # Spark dependencies
-export APACHE_SPARK_VERSION=3.1.2
+export APACHE_SPARK_VERSION=3.1.3
 apt-get -y update
 apt-get install -y --no-install-recommends openjdk-7-jre-headless
 apt-get clean

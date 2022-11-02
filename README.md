@@ -1,9 +1,9 @@
 # Vagrant-Spark2
 
-This repo is the fork of [vagrant-jupyter](https://github.com/giabar/vagrant-jupyter) which is based on Spark 1.5.1 and Jupyter v4.
+This repo is the fork of [vagrant-jupyter](https://github.com/giabar/vagrant-jupyter) which is based on Spark 3.1.3 and Jupyter.
 
 This is a Vagrant machine with Jupyter Notebook (v5) installed.
-The kernels installed are: Python 3.6.1, Apache Spark 2.1.1 with Scala 2.11.8 and PySpark (2.1.1).
+The kernels installed are: Python 3.8.x, Apache Spark 3.1.3 with Scala 2.12.x and PySpark (3.1.3).
 
 The notebook folder is: /home/vagrant.
 
@@ -11,7 +11,7 @@ The notebook folder is: /home/vagrant.
 ### Requirements
 You have to install:
 
-1. [VirtualBox 5](https://www.virtualbox.org/wiki/Downloads) or later (this Vagrantfile was tested on VirtualBox 5.0.6)
+1. [VirtualBox 5](https://www.virtualbox.org/wiki/Downloads) or later (this Vagrantfile was tested on VirtualBox 7.0.0)
 2. VirtualBox Oracle VM VirtualBox Extension Pack
 3. [Vagrant](https://www.vagrantup.com)
 4. Vagrant plugin [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest) to keep updated the guest additions on VM:
