@@ -48,7 +48,7 @@ mkdir /root/.local
 # Spark dependencies
 export APACHE_SPARK_VERSION=3.1.3
 apt-get -y update
-apt-get install -y --no-install-recommends openjdk-7-jre-headless
+#apt-get install -y --no-install-recommends openjdk-7-jre-headless
 apt-get clean
 echo 'Downloading Spark. Hold tight..'
 wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2.tgz | tar -xz -C /usr/local/
