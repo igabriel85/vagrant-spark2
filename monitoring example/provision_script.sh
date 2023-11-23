@@ -46,14 +46,14 @@ mkdir /root/.jupyter
 mkdir /root/.local
 
 # Spark dependencies
-export APACHE_SPARK_VERSION=3.1.3
+export APACHE_SPARK_VERSION=3.3.3
 apt-get -y update
 #apt-get install -y --no-install-recommends openjdk-7-jre-headless
 apt-get clean
 echo 'Downloading Spark. Hold tight..'
-wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2.tgz | tar -xz -C /usr/local/
+wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.tgz | tar -xz -C /usr/local/
 cd /usr/local
-ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2 spark
+ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop3 spark
 
 
 apt-get clean
