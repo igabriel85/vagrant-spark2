@@ -2,11 +2,13 @@ import sys
 from random import random
 from operator import add
 from pyspark import SparkContext
+
 if __name__ == "__main__":
 	"""
 	Usage: pi [partitions]
 	"""
-	sc = SparkContext(appName="PythonPi")
+	# sc = SparkContext(appName="PythonPi")
+	sc = SparkContext(master="local", appName="PythonPi")
 	partitions = int(sys.argv[1]) if len(sys.argv) > 1 else 2
 	n = 100000 * partitions
 	def f(_):
