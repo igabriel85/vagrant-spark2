@@ -32,7 +32,10 @@ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod +x Miniconda3-latest-Linux-x86_64.sh
 /bin/bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 rm Miniconda3-latest-Linux-x86_64.sh
-$CONDA_DIR/bin/conda install --yes conda==4.3.21
+#$CONDA_DIR/bin/conda install --yes conda==4.3.21
+
+# spwcify python version for base
+$CONDA_DIR/bin/conda install --yes python=3.11
 
 #Set Swappiness value to 10 instead of 60
 sysctl -w vm.swappiness=10
