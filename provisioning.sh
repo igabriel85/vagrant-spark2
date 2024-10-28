@@ -39,7 +39,7 @@ sysctl -w vm.swappiness=10
 cat /proc/sys/vm/swappiness
 
 # Install Jupyter notebook
-conda install --yes 'notebook=5.0*' terminado
+conda install --yes 'notebook' terminado
 conda clean -yt
 
 #Create Jupyter working folders
