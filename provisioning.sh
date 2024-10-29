@@ -82,10 +82,10 @@ export SPARK_HOME=/usr/local/spark
 export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9-src.zip
 
 # Install Python packages
-conda install --yes 'ipython' 'ipywidgets' 'pandas' 'matplotlib' 'scipy' 'seaborn' 'scikit-learn' 'pyspark' 'py4j' 'pyzmq'  requests rasterio dask pyod
+conda install --yes 'ipython' 'ipywidgets' 'pandas' 'matplotlib' 'scipy' 'seaborn' 'scikit-learn' 'pyspark' 'py4j' 'pyzmq'  requests dask pyod
 conda clean -yt
 
-pip install pystac-client
+pip install pystac-client rasterio
 
 # Scala Spark and Pyspark kernels
 mkdir -p /opt/conda/share/jupyter/kernels/scala
