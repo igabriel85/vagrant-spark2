@@ -33,11 +33,11 @@ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod +x Miniconda3-latest-Linux-x86_64.sh
 /bin/bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 rm Miniconda3-latest-Linux-x86_64.sh
-$CONDA_DIR/bin/conda install --yes conda==4.3.21
+$CONDA_DIR/bin/conda install --yes conda
 
 
 # Install Jupyter notebook
-conda install --yes 'notebook=5.0*' terminado
+conda install --yes notebook terminado
 conda clean -yt
 
 #Create Jupyter working folders
