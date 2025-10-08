@@ -5,4 +5,4 @@ export PATH=$PATH:${SPARK_HOME}/bin
 export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.8.2.1-src.zip
 
 # start jupyter and log to /var/log/jupyter.log add pid to /var/run/jupyter.pid
-jupyter lab  --NotebookApp.token='bd2024' --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir='/home/vagrant' > $HOME/jupyter.log 2>&1 & echo $! > $HOME/jupyter.pid
+jupyter lab  --NotebookApp.token='bd2025' --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir='/home/vagrant' > $HOME/jupyter.log 2>&1 & echo $! > $HOME/jupyter.pid
