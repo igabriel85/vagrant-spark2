@@ -3,7 +3,7 @@
 This repo is the fork of [vagrant-jupyter](https://github.com/giabar/vagrant-jupyter) which is based on Spark 3.1.3 and Jupyter.
 
 This is a Vagrant machine with Jupyter Notebook (v5) installed.
-The kernels installed are: Python 3.8.x, Apache Spark 3.1.3 with Scala 2.12.x and PySpark (3.1.3).
+The kernels installed are: Python 3.10.x, Apache Spark 3.1.3 with Scala 2.12.x and PySpark (3.1.3).
 
 The notebook folder is: /home/vagrant.
 
@@ -59,3 +59,4 @@ http://localhost:8888
 Install [Proxy Configuration Plugin for Vagrant](https://github.com/tmatilai/vagrant-proxyconf/)
 
 ### For a two VM Spark monitoring setup you can go to this section of the repository.
+
