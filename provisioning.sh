@@ -34,6 +34,10 @@ chmod +x Miniconda3-latest-Linux-x86_64.sh
 rm Miniconda3-latest-Linux-x86_64.sh
 #$CONDA_DIR/bin/conda install --yes conda==4.3.21
 
+# accept conda license, new 2025
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
 # spwcify python version for base
 $CONDA_DIR/bin/conda install --yes python=3.11
 
@@ -111,4 +115,7 @@ chown -R vagrant:vagrant /opt/
 #bash script to start Jupyter (in case the logon script doesn't work)
 cp /vagrant/startJupyter.sh /home/vagrant/startJupyter.sh
 chown vagrant:vagrant /home/vagrant/startJupyter.sh
-chmod +x /startJupyter.sh
+chmod +x /home/vagrant/startJupyter.sh
+
+#start Jupyter at the end of the provisioning
+sudo -i -u vagrant /home/vagrant/startJupyter.sh
