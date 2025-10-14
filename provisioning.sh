@@ -5,8 +5,8 @@ export SHELL=/bin/bash
 export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-apt-get update
-apt-get install -yq --no-install-recommends \
+apt update
+apt install -yq --no-install-recommends \
 git \
 vim \
 wget \
@@ -23,7 +23,7 @@ texlive-fonts-extra \
 texlive-fonts-recommended \
 openjdk-8-jre-headless
 
-apt-get clean
+apt clean
 
 # Install conda
 mkdir -p $CONDA_DIR
@@ -55,13 +55,13 @@ mkdir /root/.jupyter
 mkdir /root/.local
 
 # Spark dependencies
-export APACHE_SPARK_VERSION=3.1.3
+export APACHE_SPARK_VERSION=3.5.7
 apt-get -y update
 apt-get clean
 echo 'Downloading Spark. Hold tight..'
-wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2.tgz | tar -xz -C /usr/local/
+wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.tgz | tar -xz -C /usr/local/
 cd /usr/local
-ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop3.2 spark
+ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop3 spark
 
 # Scala Spark kernel (build and cleanup)
 
@@ -89,7 +89,7 @@ export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9-src.zip
 conda install --yes 'ipython' 'ipywidgets' 'pandas' 'matplotlib' 'scipy' 'seaborn' 'scikit-learn' 'pyspark' 'py4j' 'pyzmq'  requests dask pyod
 conda clean -yt
 
-pip install pystac-client rasterio
+pip install pystac-client rasterio jupyter
 
 # Scala Spark and Pyspark kernels
 mkdir -p /opt/conda/share/jupyter/kernels/scala
