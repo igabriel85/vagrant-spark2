@@ -42,7 +42,7 @@ sysctl -w vm.swappiness=10
 cat /proc/sys/vm/swappiness
 
 # Install Jupyter notebook
-conda install --yes 'notebook' terminado
+conda install --yes 'notebook' terminado jupyter
 conda clean -yt
 
 #Create Jupyter working folders
@@ -109,5 +109,6 @@ cp /vagrant/kernels/pyspark.json /opt/conda/share/jupyter/kernels/pyspark/kernel
 chown -R vagrant:vagrant /opt/
 
 #bash script to start Jupyter (in case the logon script doesn't work)
-cp /vagrant/startJupyter.sh /
+cp /vagrant/startJupyter.sh /home/vagrant/startJupyter.sh
+chown vagrant:vagrant /home/vagrant/startJupyter.sh
 chmod +x /startJupyter.sh
