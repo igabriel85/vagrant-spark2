@@ -23,6 +23,10 @@ texlive-fonts-extra \
 texlive-fonts-recommended \
 openjdk-8-jre-headless
 
+#douple check java version
+
+apt install -y openjdk-8-jre-headless
+
 apt clean
 
 # Install conda
@@ -116,6 +120,12 @@ chown -R vagrant:vagrant /opt/
 cp /vagrant/startJupyter.sh /home/vagrant/startJupyter.sh
 chown vagrant:vagrant /home/vagrant/startJupyter.sh
 chmod +x /home/vagrant/startJupyter.sh
+
+#echo java version
+echo 'Java version:'
+java -version
+
+echo 'Provisioning complete.'
 
 #start Jupyter at the end of the provisioning
 sudo -i -u vagrant /home/vagrant/startJupyter.sh
