@@ -1,6 +1,24 @@
 # Example Spark submit
 
-spark-submit --class org.apache.spark.examples.SparkPi --master spark://ubuntu-jammy:7077 /usr/local/spark/examples/jars/spark-examples_2.12-3.5.7.jar 100
+
+# Start Spark Master
+$SPARK_HOME/sbin/start-master.sh
+
+# Start Spark Worker
+$SPARK_HOME/sbin/start-worker.sh spark://bd-lab-node1:7077
+
+
+
+spark-submit \
+    --class org.apache.spark.examples.SparkPi \
+    --master spark://bd-lab-node1:7077 \
+    $SPARK_HOME/examples/jars/spark-examples_2.13-4.0.1.jar \
+    100
+
+spark-submit --master local[2] pi.py [partitions]
+
+
+
 
 
 spark-submit --master spark://ubuntu-jammy:7077 --executor-memory 1g  --driver-class-path /usr/local/spark/examples/src/main/python/ml/gradient_boosted_tree_classifier_example.py /usr/local/spark/examples/src/main/python/ml/gradient_boosted_tree_classifier_example.py
@@ -8,9 +26,9 @@ spark-submit --master spark://ubuntu-jammy:7077 --executor-memory 1g  --driver-c
 # Spark master and worker have to be started in order to execute Spark workloads.
 
 ./start-master.sh
-./start-worker.sh spark://ubuntu-jammy:7077
+./start-worker.sh spark://bd-lab-node1:7077
 or
 ./start-slave.sh spark://node1:7077
 
 
-Note: Spark master is spark://ubuntu-jammy:7077 for single VM deployment and spark://node1:7077 for multi node deployment
+Note: Spark master is spark://bd-lab-node1:7077 for single VM deployment and spark://node1:7077 for multi node deployment

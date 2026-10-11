@@ -1,8 +1,16 @@
-export CONDA_DIR=/opt/conda
-export PATH=$CONDA_DIR/bin:$PATH
-export SPARK_HOME=/usr/local/spark
-export PATH=$PATH:${SPARK_HOME}/bin
-export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.8.2.1-src.zip
+#!/usr/bin/env bash
 
-# start jupyter and log to /var/log/jupyter.log add pid to /var/run/jupyter.pid
-jupyter lab  --NotebookApp.token='bd2025' --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir='/home/vagrant' > $HOME/jupyter.log 2>&1 & echo $! > $HOME/jupyter.pid
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export SPARK_HOME=/usr/local/spark
+export PATH=$SPARK_HOME/bin:$SPARK_HOME/sbin:/opt/conda/envs/spark/bin:$PATH
+
+export PYSPARK_PYTHON=/opt/conda/envs/spark/bin/python
+export PYSPARK_DRIVER_PYTHON=/opt/conda/envs/spark/bin/python
+
+cd /home/vagrant/work
+
+jupyter lab \
+    --ip=0.0.0.0 \
+    --port=8888 \
+    --no-browser \
+    --ServerApp.token="bd_lab_2026"
