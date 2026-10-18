@@ -73,7 +73,7 @@ conda create -y -n spark \
     matplotlib \
     scipy \
     scikit-learn \
-    pyspark \
+    pyspark==$SPARK_VERSION \
     requests
 
 
