@@ -1,0 +1,19 @@
+[Unit]
+Description=Spark standalone master (spark://node1:7077)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Keep start-master.sh in the foreground so systemd supervises the JVM
+Environment=SPARK_NO_DAEMONIZE=true
+Environment=SPARK_HOME=/usr/local/spark
+ExecStart=/usr/local/spark/sbin/start-master.sh
+User=vagrant
+Group=vagrant
+WorkingDirectory=/usr/local/spark/
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

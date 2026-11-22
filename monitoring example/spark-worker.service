@@ -1,0 +1,19 @@
+[Unit]
+Description=Spark standalone worker
+After=spark-master.service
+Wants=spark-master.service
+
+[Service]
+Type=simple
+# Keep start-worker.sh in the foreground so systemd supervises the JVM
+Environment=SPARK_NO_DAEMONIZE=true
+Environment=SPARK_HOME=/usr/local/spark
+ExecStart=/usr/local/spark/sbin/start-worker.sh spark://node1:7077
+User=vagrant
+Group=vagrant
+WorkingDirectory=/usr/local/spark/
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

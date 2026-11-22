@@ -1,0 +1,17 @@
+[Unit]
+Description=Dask scheduler (tcp://node1:8786, dashboard :8787)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# --host node1: without it Dask advertises the VirtualBox NAT address (10.0.2.15)
+ExecStart=/opt/conda/envs/spark/bin/dask scheduler --host node1 --port 8786 --dashboard-address :8787
+User=vagrant
+Group=vagrant
+WorkingDirectory=/tmp
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,9 +1,9 @@
 # Spark monitoring with Prometheus
 # Based on ASPIDE Prometheus testbed cluster
-# beta v0.0.1
+# beta v0.0.2
 # Bootstrap script for Prometheus cluster
 #
-#Copyright 2019, Institute e-Austria, Timisoara, Romania
+#Copyright 2026, Institute e-Austria, Timisoara, Romania
 #    http://www.ieat.ro/
 #Developers:
 # * Gabriel Iuhasz, iuhasz.gabriel@info.uvt.ro
@@ -19,21 +19,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-$master_script = <<SCRIPT
+# Static cluster names, written first on both VMs. There is deliberately no "127.0.1.1 <hostname>"
+# line, so node1/prometheus resolve to their private IPs and Spark and Dask bind there.
+$etc_hosts_script = <<'SCRIPT'
 #!/bin/bash
+cat > /etc/hosts <<EOF
+127.0.0.1       localhost
+192.168.56.10   prometheus
+192.168.56.2    node1
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+EOF
+SCRIPT
+
+
+$master_script = <<'SCRIPT'
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
 export LC_ALL="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
+
+PROMETHEUS_VERSION=3.13.5
+ARCH=$(dpkg --print-architecture)   # amd64 or arm64
+
 apt-get update
-apt-get install screen -y
-apt-get install wget -y
-apt-get install sbt
+apt-get install -y wget curl gpg ca-certificates
 
-sudo chown vagrant:vagrant -R /opt
-cd /opt
-wget https://github.com/prometheus/prometheus/releases/download/v2.13.0-rc.0/prometheus-2.13.0-rc.0.linux-amd64.tar.gz
-tar -xzvf prometheus-2.13.0-rc.0.linux-amd64.tar.gz && cd /opt/prometheus-2.13.0-rc.0.linux-amd64
+# Download Prometheus
+wget -q https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-${ARCH}.tar.gz -O /tmp/prometheus.tar.gz
+tar -xzf /tmp/prometheus.tar.gz -C /opt
+rm /tmp/prometheus.tar.gz
+ln -sfn /opt/prometheus-${PROMETHEUS_VERSION}.linux-${ARCH} /opt/prometheus
 
-cat <<EOF > /opt/prometheus-2.13.0-rc.0.linux-amd64/prometheus.yml
+cat <<EOF > /opt/prometheus/prometheus.yml
 global:
   scrape_interval:     1s # By default, scrape targets every 15 seconds.
   # Attach these labels to any time series or alerts when communicating with
@@ -41,214 +64,138 @@ global:
   external_labels:
     monitor: 'aspide-monitor'
 # A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
+# Here it's the node_exporter on node1.
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'node-prometheus'
     static_configs:
       - targets: ['192.168.56.2:9100']
 EOF
-cd /opt/prometheus-2.13.0-rc.0.linux-amd64
-# Start prometheus
-# nohup ./prometheus > prometheus.log 2>&1 &
+chown -R vagrant:vagrant /opt/prometheus-${PROMETHEUS_VERSION}.linux-${ARCH}
 
-# Register prometheus as service
-sudo mkdir /usr/lib/systemd/system
-sudo cp /vagrant/prometheus.service /usr/lib/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable prometheus.service
-sudo systemctl start prometheus.service
+# Register prometheus as service (restart so a re-provision picks up the new config)
+cp /vagrant/prometheus.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable prometheus.service
+systemctl restart prometheus.service
 
-cd /opt
+# Install grafana from the Grafana apt repo (resolves dependencies and the CPU architecture)
+mkdir -p /etc/apt/keyrings
+wget -qO- https://apt.grafana.com/gpg.key | gpg --dearmor --yes -o /etc/apt/keyrings/grafana.gpg
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list
+apt-get update
+apt-get install -y grafana-enterprise
 
-# Download grafana
-#wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana_4.2.0_amd64.deb -O /opt/grafana_4.2.0_amd64.deb
-wget https://dl.grafana.com/enterprise/release/grafana-enterprise_10.2.2_amd64.deb
-
-sudo apt-get install -y adduser libfontconfig musl
-
-# Install grafana 
-#sudo dpkg -i grafana_4.2.0_amd64.deb
-sudo dpkg -i grafana-enterprise_10.2.2_amd64.deb
-
-# Start grafana service 
-sudo service grafana-server start
-
-# Run on every boot
-sudo update-rc.d grafana-server defaults
-
+# Start grafana service and run on every boot
+systemctl daemon-reload
+systemctl enable --now grafana-server
 
 # Set Swappiness value to 10 instead of 60
 sysctl -w vm.swappiness=10
-cat /proc/sys/vm/swappiness
-
-cat > /etc/hosts <<EOF
-127.0.0.1       localhost
-# The following lines are desirable for IPv6 capable hosts
-::1     ip6-localhost ip6-loopback
-fe00::0 ip6-localnet
-ff00::0 ip6-mcastprefix
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-EOF
+echo "vm.swappiness=10" > /etc/sysctl.d/99-swappiness.conf
 SCRIPT
 
 
-$hosts_script = <<SCRIPT
+$hosts_script = <<'SCRIPT'
 #!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
 export LC_ALL="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
+
+NODE_EXPORTER_VERSION=1.12.1
+ARCH=$(dpkg --print-architecture)   # amd64 or arm64
+
 apt-get update
-apt-get install wget -y
-apt-get install redis-server -y
-echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
-sudo apt-get update
-sudo apt-get install sbt -y
+apt-get install -y wget git redis-server
 
-sudo chown vagrant:vagrant -R /opt
-cd /opt
-wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
-
-# Extract node_exporter
-tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz
-
-# create a symbolic link of node_exporter
-# sudo ln -s /opt/node_exporter/node_exporter-0.18.1.linux-amd64/node_exporter /usr/bin
-
-# Edit node_exporter configuration file and add configuration so that it will automatically start in next boot
-# cat <<EOF > /etc/init/node_exporter.conf
-# start on startup
-# script
-#    /usr/bin/node_exporter
-# end script
-# EOF
-# Start service of node_exporter
-# sudo service node_exporter start
-
-#cd /opt/node_exporter-0.18.1.linux-amd64/
-
-#nohup ./node_exporter > exporter.log 2>&1 &
-
-# Register node_exporter as service
-sudo mkdir /usr/lib/systemd/system
-sudo cp /vagrant/node_exporter.service /usr/lib/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable node_exporter.service
-sudo service node_exporter start  
-
+# Download node_exporter
+wget -q https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-${ARCH}.tar.gz -O /tmp/node_exporter.tar.gz
+tar -xzf /tmp/node_exporter.tar.gz -C /opt
+rm /tmp/node_exporter.tar.gz
+ln -sfn /opt/node_exporter-${NODE_EXPORTER_VERSION}.linux-${ARCH} /opt/node_exporter
+chown -R vagrant:vagrant /opt/node_exporter-${NODE_EXPORTER_VERSION}.linux-${ARCH}
+cp /vagrant/node_exporter.service /etc/systemd/system/
 
 # Clone UNICAL Use-Case
-mkdir /opt/unical
-sudo chown vagrant:vagrant -R /opt
-cd /opt/unical && git clone https://github.com/SCAlabUnical/AUDESOME.git
+mkdir -p /opt/unical
+[ -d /opt/unical/AUDESOME ] || git clone https://github.com/SCAlabUnical/AUDESOME.git /opt/unical/AUDESOME
 
-# Install Chaos
-cd /opt && git clone https://github.com/IeAT-ASPIDE/ede-chaos-inductor.git
-sudo systemctl enable redis-server.service
-conda create -n chaos -y
-source activate chaos && pip install flask rq redis pyyaml flask-restful scipy flask-restful-swagger psutil py-cpuinfo pygrok
-cp /opt/ede-chaos-inductor/etc/systemd/chaosrqworker@.service /usr/lib/systemd/system
-sudo systemctl enable chaosrqworker@.service
-sudo systemctl daemon-reload
+# Install Chaos inducer in its own env: its requirements pin old packages (markupsafe 2.0.1)
+# and the code imports rq.Connection, which was removed in rq 2.
+[ -d /opt/ede-chaos-inductor ] || git clone https://github.com/IeAT-ASPIDE/ede-chaos-inductor.git /opt/ede-chaos-inductor
+[ -d /opt/conda/envs/chaos ] || /opt/conda/bin/conda create -y -n chaos python=3.10 pip
+/opt/conda/envs/chaos/bin/pip install -r /opt/ede-chaos-inductor/requirements.txt "rq<2"
 
-cp /opt/ede-chaos-inductor/etc/systemd/eci@.service /usr/lib/systemd/system
-sudo systemctl enable eci@.service
-sudo systemctl daemon-reload
-sudo chown vagrant:vagrant -R /opt
+# The upstream units run /opt/conda/bin/python; point them at the chaos env
+for unit in chaosrqworker@.service eci@.service; do
+    sed 's#/opt/conda/bin/python#/opt/conda/envs/chaos/bin/python#' /opt/ede-chaos-inductor/etc/systemd/$unit > /etc/systemd/system/$unit
+done
+chown -R vagrant:vagrant /opt/unical /opt/ede-chaos-inductor
 
+# Template units need an instance name: eci@1 is the REST API (port 5000), chaosrqworker@1 the job worker
+systemctl daemon-reload
+systemctl enable redis-server node_exporter eci@1 chaosrqworker@1
+systemctl restart redis-server node_exporter eci@1 chaosrqworker@1
 
-#Set Swappiness value to 10 instead of 60
+# Set Swappiness value to 10 instead of 60 (persisted by provision_script.sh)
 sysctl -w vm.swappiness=10
-cat /proc/sys/vm/swappiness
-
-cat > /etc/hosts <<EOF
-127.0.0.1       localhost
-# The following lines are desirable for IPv6 capable hosts
-::1     ip6-localhost ip6-loopback
-fe00::0 ip6-localnet
-ff00::0 ip6-mcastprefix
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-EOF
-SCRIPT
-#TODO add exports to bashrc:
-#
-#export PYSPARK_DRIVER_PYTHON=/usr/bin/ipython
-#export PYSPARK_PYTHON=/opt/conda/bin/python
-$spark_master_script = <<SCRIPT
-#!/bin/bash
-
-
-# Start Spark Master
-cd /usr/local/spark/sbin/ &&  ./start-master.sh
-
 SCRIPT
 
-$spark_slave_script = <<SCRIPT
+
+# Spark master + worker, Dask scheduler + worker and JupyterLab, all on node1 as systemd services
+# so they come back after `vagrant halt`/`vagrant up` and `vagrant reload`.
+$cluster_script = <<'SCRIPT'
 #!/bin/bash
-
-
-
-# Start Spark Master
-cd /usr/local/spark/sbin/ && ./start-worker.sh spark://node1:7077
-
+set -e
+for unit in spark-master spark-worker dask-scheduler dask-worker jupyter; do
+    cp /vagrant/$unit.service /etc/systemd/system/
+done
+systemctl daemon-reload
+systemctl enable spark-master spark-worker dask-scheduler dask-worker jupyter
+systemctl restart spark-master spark-worker dask-scheduler dask-worker jupyter
 SCRIPT
 
 Vagrant.configure("2") do |config|
 
-  # Define base image
-  config.vm.box = "ubuntu/jammy64"
-  #config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  # Ubuntu 24.04 LTS, same box as ../Vagrantfile; has amd64 and arm64 (Apple Silicon) builds
+  config.vm.box = "bento/ubuntu-24.04"
 
-  # Manage /etc/hosts on host and VMs
-  config.hostmanager.enabled = false
-  config.hostmanager.manage_host = true
-  config.hostmanager.include_offline = true
-  config.hostmanager.ignore_private_ip = false
-  
   config.vm.define :master do |master|
     master.vm.provider :virtualbox do |v|
       v.name = "prometheus_bd"
       v.customize ["modifyvm", :id, "--memory", "2048"]
     end
-    master.disksize.size = '20GB'
-    master.vm.network :private_network, ip: "192.168.56.1"
+    # Not 192.168.56.1: that is the host's own address on the VirtualBox host-only network
+    master.vm.network :private_network, ip: "192.168.56.10"
     master.vm.hostname = "prometheus"
     master.vm.network :forwarded_port, host:9090, guest: 9090
     master.vm.network :forwarded_port, host:3000, guest: 3000
-    master.vm.network :forwarded_port, host:8787, guest:8787
-    master.vm.network :forwarded_port, host:8786, guest:8786
     master.vm.network :forwarded_port, guest: 22, host: 2185
-    master.vm.network :forwarded_port, guest: 8888, host: 8897
-    master.vm.network :forwarded_port, guest: 8080, host: 8081
-    master.vm.network :forwarded_port, guest: 7070, host: 7070
-    master.vm.network :forwarded_port, guest: 4040, host: 4040
-    master.vm.network :forwarded_port, guest: 18080, host: 18080
+    master.vm.provision :shell, :inline => $etc_hosts_script
     master.vm.provision :shell, :inline => $master_script
-    master.vm.provision :shell, path: "provision_script.sh"
-    master.vm.provision :hostmanager
   end
 
   config.vm.define :slave1 do |slave1|
-    slave1.vm.box = "ubuntu/jammy64"
     slave1.vm.provider :virtualbox do |v|
       v.name = "unical_bd_node1"
-      v.customize ["modifyvm", :id, "--memory", "2048"]
+      v.customize ["modifyvm", :id, "--memory", "6144"]
       v.customize ["modifyvm", :id, "--cpus", 4]
     end
+    # Keep 192.168.56.2: bd_lab.ipynb queries Prometheus for instance="192.168.56.2:9100"
     slave1.vm.network :private_network, ip: "192.168.56.2"
     slave1.vm.hostname = "node1"
     slave1.vm.network :forwarded_port, guest: 22, host: 2186
     slave1.vm.network :forwarded_port, guest: 5000, host: 5001
+    slave1.vm.network :forwarded_port, guest: 8888, host: 8897
     slave1.vm.network :forwarded_port, guest: 8080, host: 8082
-    slave1.vm.network :forwarded_port, guest: 7070, host: 7071
+    slave1.vm.network :forwarded_port, guest: 8081, host: 8083
     slave1.vm.network :forwarded_port, guest: 4040, host: 4041
     slave1.vm.network :forwarded_port, guest: 18080, host: 18081
+    slave1.vm.network :forwarded_port, guest: 8787, host: 8787
+    slave1.vm.provision :shell, :inline => $etc_hosts_script
     slave1.vm.provision :shell, path: "provision_script.sh"
     slave1.vm.provision :shell, :inline => $hosts_script
-    slave1.vm.provision :shell, :inline => $spark_master_script
-    slave1.vm.provision :shell, :inline => $spark_slave_script
-    slave1.vm.provision :hostmanager
+    slave1.vm.provision :shell, :inline => $cluster_script
   end
 end

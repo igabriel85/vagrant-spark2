@@ -15,15 +15,6 @@ You have to install:
 2. VirtualBox Oracle VM VirtualBox Extension Pack
 3. [Vagrant](https://www.vagrantup.com)
 
-Install Hostmanager plugin
-```
-vagrant plugin install vagrant-hostmanager
-```
-Install Disksize plugin
-```
-vagrant plugin install vagrant-disksize
-```
-
 If you'are going to use Vagrant on Windows machine, you could get this error when start a new VM:
 ```
 rsync could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
@@ -55,5 +46,5 @@ http://localhost:8888
 
 Install [Proxy Configuration Plugin for Vagrant](https://github.com/tmatilai/vagrant-proxyconf/)
 
-### For a two VM Spark monitoring setup you can go to this section of the repository.
+### For a two VM Spark + Dask monitoring setup see [monitoring example](monitoring%20example/README.md).
 

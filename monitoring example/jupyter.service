@@ -1,0 +1,20 @@
+[Unit]
+Description=JupyterLab (notebooks from the synced /vagrant folder)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=SPARK_HOME=/usr/local/spark
+Environment=PYSPARK_PYTHON=/opt/conda/envs/spark/bin/python
+Environment=PYSPARK_DRIVER_PYTHON=/opt/conda/envs/spark/bin/python
+Environment=PATH=/opt/conda/envs/spark/bin:/usr/local/spark/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/opt/conda/envs/spark/bin/jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --ServerApp.token=bd_lab_2026
+User=vagrant
+Group=vagrant
+WorkingDirectory=/vagrant
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

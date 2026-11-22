@@ -1,70 +1,204 @@
 #!/usr/bin/env bash
-# Configure environment
-export CONDA_DIR=/opt/conda
-export PATH=$CONDA_DIR/bin:$PATH
-export SHELL=/bin/bash
+# Spark 4 + Dask + Jupyter stack for node1.
+# Kept in step with ../provisioning.sh (single-VM setup); differences: works on amd64 and arm64,
+# installs the Dask cluster packages, writes spark-env.sh, and leaves starting services to systemd.
+
+set -e
+
+
+# Configuration
 export DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
+CONDA_DIR=/opt/conda
+SPARK_VERSION=4.0.1
+SPARK_HOME=/usr/local/spark
+ARCH=$(dpkg --print-architecture)   # amd64 or arm64
+
+
+# System packages
 apt-get update
-apt-get install -yq --no-install-recommends \
-git \
-vim \
-wget \
-build-essential \
-python-dev \
-ca-certificates \
-bzip2 \
-unzip \
-libsm6 \
-pandoc \
-texlive-latex-base \
-texlive-latex-extra \
-texlive-fonts-extra \
-texlive-fonts-recommended \
-openjdk-8-jre-headless
+
+apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    wget \
+    git \
+    vim \
+    unzip \
+    build-essential \
+    openjdk-17-jdk-headless
 
 apt-get clean
-
-# Install conda
-mkdir -p $CONDA_DIR
-echo export PATH=$CONDA_DIR/bin:'$PATH' > /etc/profile.d/conda.sh
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod +x Miniconda3-latest-Linux-x86_64.sh
-/bin/bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
-rm Miniconda3-latest-Linux-x86_64.sh
-$CONDA_DIR/bin/conda install --yes conda
+rm -rf /var/lib/apt/lists/*
 
 
-# Install Jupyter notebook
-conda install --yes notebook terminado
-conda clean -yt
+# Java
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-${ARCH}
 
-#Create Jupyter working folders
-mkdir /root/work
-mkdir /root/.jupyter
-mkdir /root/.local
+echo "JAVA_HOME=${JAVA_HOME}" >> /etc/environment
 
-# Spark dependencies
-export APACHE_SPARK_VERSION=3.4.4
-apt-get -y update
-#apt-get install -y --no-install-recommends openjdk-7-jre-headless
-apt-get clean
-echo 'Downloading Spark. Hold tight..'
-wget -qO - https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop3.tgz | tar -xz -C /usr/local/
-cd /usr/local
-ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop3 spark
+echo "Java version:"
+java -version
 
 
-apt-get clean
-# Spark env
+# Miniconda (installer is named after uname -m: x86_64 or aarch64)
+if [ ! -d "$CONDA_DIR" ]; then
+
+    wget -q \
+      "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-$(uname -m).sh" \
+      -O /tmp/miniconda.sh
+
+    bash /tmp/miniconda.sh -b -p "$CONDA_DIR"
+
+    rm /tmp/miniconda.sh
+fi
+
+export PATH="$CONDA_DIR/bin:$PATH"
+
+echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh
+
+# Accept Anaconda ToS
+conda tos accept \
+    --override-channels \
+    --channel https://repo.anaconda.com/pkgs/main
+
+conda tos accept \
+    --override-channels \
+    --channel https://repo.anaconda.com/pkgs/r
+
+
+# Python environment
+conda create -y -n spark \
+    python=3.11 \
+    jupyterlab \
+    ipykernel \
+    ipywidgets \
+    pandas \
+    matplotlib \
+    scipy \
+    scikit-learn \
+    pyspark==$SPARK_VERSION \
+    requests
+
+
+# Apache Spark
+echo "Downloading Apache Spark ${SPARK_VERSION}..."
+
+wget -q \
+    "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" \
+    -O /tmp/spark.tgz
+
+tar -xzf /tmp/spark.tgz -C /usr/local/
+
+ln -sfn \
+    "/usr/local/spark-${SPARK_VERSION}-bin-hadoop3" \
+    "$SPARK_HOME"
+
+rm /tmp/spark.tgz
+
+
+# Spark environment
+cat > /etc/profile.d/spark.sh <<EOF
+export JAVA_HOME=${JAVA_HOME}
 export SPARK_HOME=/usr/local/spark
-# TO BE CHECK ONCE INSTALLED
-export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9-src.zip
+export PATH=\$SPARK_HOME/bin:\$SPARK_HOME/sbin:\$PATH
+export PYSPARK_PYTHON=/opt/conda/envs/spark/bin/python
+export PYSPARK_DRIVER_PYTHON=/opt/conda/envs/spark/bin/python
+EOF
 
-# Install Python packages
-conda install --yes 'ipython' 'ipywidgets' 'pandas' 'matplotlib' 'scipy' 'seaborn' 'scikit-learn' 'pyspark' 'py4j' pyzmq
-conda clean -yt
+# Current provisioning shell
+export SPARK_HOME=/usr/local/spark
+export PATH="$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH"
+export PYSPARK_PYTHON=/opt/conda/envs/spark/bin/python
+export PYSPARK_DRIVER_PYTHON=/opt/conda/envs/spark/bin/python
 
-# fix permisions
-chown -R vagrant:vagrant /opt/*
+
+# Additional Python packages
+# Dask client, scheduler and workers all run from this env, so their versions always match.
+/opt/conda/envs/spark/bin/pip install \
+    pyarrow \
+    "dask[distributed,diagnostics]" \
+    dask-ml \
+    joblibspark \
+    seaborn \
+    tqdm \
+    pyod \
+    pystac-client \
+    rasterio
+
+
+# Jupyter kernel
+/opt/conda/envs/spark/bin/python -m ipykernel install \
+    --prefix=/opt/conda \
+    --name pyspark \
+    --display-name "PySpark (Spark 4)"
+
+
+# Spark event log / History Server
+mkdir -p /tmp/spark-events
+chmod 1777 /tmp/spark-events
+
+mkdir -p "$SPARK_HOME/conf"
+
+cat > "$SPARK_HOME/conf/spark-defaults.conf" <<EOF
+spark.eventLog.enabled            true
+spark.eventLog.dir                file:///tmp/spark-events
+spark.history.fs.logDirectory     file:///tmp/spark-events
+EOF
+
+# Standalone cluster settings, read by the daemons and by spark-submit/pyspark.
+# SPARK_LOCAL_IP is deliberately not set: it would bind the web UIs to the private IP only
+# and break the Vagrant port forwards (which arrive on the NAT interface).
+cat > "$SPARK_HOME/conf/spark-env.sh" <<EOF
+JAVA_HOME=${JAVA_HOME}
+SPARK_MASTER_HOST=node1
+SPARK_WORKER_MEMORY=2g
+PYSPARK_PYTHON=/opt/conda/envs/spark/bin/python
+PYSPARK_DRIVER_PYTHON=/opt/conda/envs/spark/bin/python
+EOF
+
+
+# Jupyter workspace
+mkdir -p /home/vagrant/work
+chown -R vagrant:vagrant /home/vagrant/work
+
+
+# Swappiness
+sysctl -w vm.swappiness=10
+
+cat > /etc/sysctl.d/99-spark-lab.conf <<EOF
+vm.swappiness=10
+EOF
+
+
+# Permissions (the systemd services run as vagrant and write logs under $SPARK_HOME)
+chown -R vagrant:vagrant /opt/conda
+chown -R vagrant:vagrant "/usr/local/spark-${SPARK_VERSION}-bin-hadoop3"
+
+
+# Versions
+echo
+echo "========================================"
+echo "Installation complete"
+echo "========================================"
+
+echo "Java:"
+java -version
+
+echo
+echo "Python:"
+/opt/conda/envs/spark/bin/python --version
+
+echo
+echo "Spark:"
+"$SPARK_HOME/bin/spark-submit" --version
+
+echo
+echo "Jupyter:"
+/opt/conda/envs/spark/bin/jupyter lab --version
+
+echo
+echo "Dask:"
+/opt/conda/envs/spark/bin/dask --version
+
+echo "========================================"

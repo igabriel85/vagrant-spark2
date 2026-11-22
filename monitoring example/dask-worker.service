@@ -1,0 +1,17 @@
+[Unit]
+Description=Dask worker
+After=dask-scheduler.service
+Wants=dask-scheduler.service
+
+[Service]
+Type=simple
+# --host node1: without it Dask advertises the VirtualBox NAT address (10.0.2.15)
+ExecStart=/opt/conda/envs/spark/bin/dask worker tcp://node1:8786 --host node1 --memory-limit 2GiB
+User=vagrant
+Group=vagrant
+WorkingDirectory=/tmp
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
